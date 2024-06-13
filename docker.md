@@ -79,10 +79,15 @@ After these steps, you can proceed with the "Running Grafana in Docker" section 
 ## Running Grafana in Docker
 
 1. Open a terminal window.
+2. Create a docker network for the containers to use. This is required for grafana to communicate with influxdb. 
+```
+docker network create mynetwork 
+```
+
 2. Run the following command to download and run the Grafana Docker image on your local machine:
 
-```bash
-docker run -d -p 3000:3000 grafana/grafana
+```
+docker run -d --network=mynetwork -p 3000:3000 --name=grafana grafana/grafana
 ```
 
 This command will download the Grafana Docker image if it's not already downloaded, and run it. The `-d` flag tells Docker to run the container in the background. The `-p` flag maps the port 3000 of your local machine to the port 3000 in the Docker container where Grafana is running.
@@ -102,3 +107,35 @@ Or use a cloud-based Grafana service like [Grafana Cloud](https://grafana.com/pr
 ## Docker Alternatives
 
 If you're looking for alternatives to Docker, you can explore other containerization platforms like Podman, LXC, or LXD.  Podman has a similar interface to Docker and is compatible with Dockerfiles and Docker images. They have also recently added Podman desktop for a more user-friendly experience.
+
+# Running / Connecting Grafana to Influx
+
+Docker containers can communicate with each other through several methods, but the most common way is by using Docker networks. Here's a step-by-step guide on how to do it:
+
+1. Create a new Docker network:
+
+```bash
+docker network create mynetwork
+```
+
+2. Run your containers in the created network. For example, if you have a Grafana container and an InfluxDB container, you can run them like this:
+
+```bash
+docker run -d --network=mynetwork -p 3000:3000 --name=grafana grafana/grafana
+docker run -d --network=mynetwork -p 8086:8086 --name=influxdb influxdb:latest
+```
+
+Now, these two containers are in the same network and can communicate with each other using their container names as hostnames. For example, from the Grafana container, you can reach the InfluxDB container at `http://influxdb:8086`.
+
+Remember to replace the placeholders with your actual values.
+
+# Notes
+
+The organization and bucket you set during the influx db onboarding UI should be what you enter in the grafana data source configuration ui.
+
+***If you would like to persist your data in grafana or influx between container runs, you will need to mount a volume in docker according to the container requirements.***
+
+# Screenshot
+
+![alt text](image.png)
+
